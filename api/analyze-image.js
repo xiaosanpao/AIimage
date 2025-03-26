@@ -43,3 +43,7 @@ module.exports = async (req, res) => {
         ...formData.getHeaders(),
         'Authorization': 'Basic ' + Buffer.from('acc_631eee5b4b7e128:63f492447d67c51dec28fa0adba9ef29').toString('base64')
       }
+    });
+
+    // Log the tags for debugging
+    console.
