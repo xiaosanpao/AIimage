@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>They See Your Photos</title>
+    <style>
+        body {
+            font-family: monospace, 'Courier New', Courier;
+            line-height: 1.6;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .left-panel {
+            width: 50%;
+            padding: 5% 5% 5% 10%;
+        }
+        
+        .right-panel {
+            width: 50%;
+            padding: 5%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-top: 0;
+            margin-bottom: 60px;
+            color: #cccccc;
+            font-weight: normal;
+            letter-spacing: 2px;
+        }
+        
+        p {
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .api-link {
+            color: #ff4d4d;
+            text-decoration: none;
+        }
+        
+        .api-link:hover {
+            text-decoration: underline;
+        }
+        
+        .italic {
+            font-style: italic;
+        }
+        
+        .photo-upload-box {
+            width: 100%;
+            max-width: 360px;
+            height: 200px;
+            border: 2px dashed #555555;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .photo-upload-box input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .upload-icon {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .image-preview {
+            max-width: 360px;
+            max-height: 300px;
+            margin-top: 20px;
+        }
+        
+        .photo-samples {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 10px;
+            width: 100%;
+            max-width: 360px;
+        }
+        
+        .sample-photo {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .or-text {
+            margin: 20px 0;
+            color: #666666;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            left: 10%;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #666666;
+        }
+        
+        .footer-brand {
+            color: #00ff66;
+            margin-right: 20px;
+        }
+        
+        .footer-links a {
+            color: #666666;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .bg-texture {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(50, 50, 50, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none"/><path d="M0 0L100 100M100 0L0 100" stroke="rgba(50,50,50,0.1)" stroke-width="0.5"/></svg>');
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .analysis-results {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 360px;
+            background-color: rgba(30, 30, 30, 0.8);
+            border-radius: 4px;
+            padding: 15px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+            color: #00ff66;
+        }
+
+        .result-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+            font-family: monospace;
+        }
+
+        .confidence {
+            float: right;
+            color: #00ff66;
+            font-weight: normal;
+        }
+
+        h3 {
+            margin-top: 0;
+            color: #cccccc;
+        }
+
+        .error-message {
+            color: #ff4d4d;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-texture"></div>
+    
+    <div class="container">
+        <div class="left-panel">
+            <h1>THEY SEE YOUR PHOTOS</h1>
+            
+            <p>Your photos reveal a lot of private information.</p>
+            
+            <p>In this experiment, we extract location data to see how much can be inferred about you from a <span class="italic">single</span> photo.</p>
+            
+            <p>See what they see.</p>
+
+            <div class="analysis-results" id="results">
+                <h3>THEY SEE:</h3>
+                <div id="resultsList"></div>
+            </div>
+        </div>
+        
+        <div class="right-panel">
+            <div class="photo-upload-box">
+                <input type="file" id="photoUpload" accept="image/*">
+                <div class="upload-icon">↑</div>
+                <div>Pick a photo</div>
+            </div>
+            
+            <div class="loading" id="loading">Analyzing photo...</div>
+            <div class="error-message" id="error-message">There was an error analyzing the image. Please try again.</div>
+            <img id="preview" class="image-preview" style="display: none;">
+            
+            <div class="or-text">or</div>
+            
+            <div class="photo-samples">
+                <img src="image/1.png" alt="Sample image 1" class="sample-photo" data-sample="1">
+                <img src="image/2.png" alt="Sample image 2" class="sample-photo" data-sample="2">
+                <img src="image/3.png" alt="Sample image 3" class="sample-photo" data-sample="3">
+                <img src="image/4.png" alt="Sample image 4" class="sample-photo" data-sample="4">
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="footer-brand">ente</div>
+        <div class="footer-links">
+            <a href="#">Terms</a>
+            <a href="#">Privacy</a>
+        </div>
+    </div>
+
+    <script>
+        // API credentials
+        const API_KEY = 'acc_631eee5b4b7e128';
+        const API_SECRET = '63f492447d67c51dec28fa0adba9ef29';
+        
+        // Handle file upload
+        document.getElementById('photoUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Display image preview
+                const preview = document.getElementById('preview');
+                preview.style.display = 'block';
+                preview.src = URL.createObjectURL(file);
+                
+                // Show loading message
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('error-message').style.display = 'none';
+                document.getElementById('results').style.display = 'none';
+                
+                // Since we're running locally, we'll just show sample results
+                // instead of actually making API calls
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    showSampleResults();
+                }, 1500);
+            }
+        });
+        
+        // Handle sample photos
+        document.querySelectorAll('.sample-photo').forEach(function(photo) {
+            photo.addEventListener('click', function() {
+                // Show preview
+                const preview = document.getElementById('preview');
+                preview.style.display = 'block';
+                preview.src = this.src;
+                
+                // Show loading
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('error-message').style.display = 'none';
+                document.getElementById('results').style.display = 'none';
+                
+                // Since we're running locally, we'll just show sample results
+                // after a brief delay to simulate processing
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // For demonstration purposes, randomly show error or results
+                    const sample = this.getAttribute('data-sample');
+                    if (sample === '2') { // Sample 2 will show an error for demonstration
+                        document.getElementById('error-message').style.display = 'block';
+                    } else {
+                        showSampleResults();
+                    }
+                }, 1500);
+            });
+        });
+        
+        // Function to show sample results for demonstration
+        function showSampleResults() {
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+            
+            // Show results
+            document.getElementById('results').style.display = 'block';
+            
+            // Generate sample location-based results
+            const resultsList = document.getElementById('resultsList');
+            resultsList.innerHTML = '';
+            
+            const locationData = [
+                { category: "LOCATION", info: "Sanlitun, Beijing" },
+                { category: "NEARBY FOOD", info: "Fei Restaurant" },
+                { category: "NEARBY ATTRACTIONS", info: "Taikoo Li Sanlitun" },
+                { category: "NEARBY HOTELS", info: "The Opposite House" }
+            ];
+            
+            locationData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.innerHTML = `
+                    ${item.category} <span class="confidence">${item.info}</span>
+                `;
+                resultsList.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
