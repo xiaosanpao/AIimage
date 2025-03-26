@@ -2,7 +2,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const { Buffer } = require('buffer');
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -43,24 +43,3 @@ export default async function handler(req, res) {
         ...formData.getHeaders(),
         'Authorization': 'Basic ' + Buffer.from('acc_631eee5b4b7e128:63f492447d67c51dec28fa0adba9ef29').toString('base64')
       }
-    });
-
-    // Generate location-based information from the image tags
-    const tags = imaggaResponse.data.result.tags;
-    
-    // Use tags to create location-based information
-    // This is a simulation - in a real app, you might use another API to get location data
-    const locationData = [
-      { category: "LOCATION", info: "Sanlitun, Beijing" },
-      { category: "NEARBY FOOD", info: "Fei Restaurant" },
-      { category: "NEARBY ATTRACTIONS", info: "Taikoo Li Sanlitun" },
-      { category: "NEARBY HOTELS", info: "The Opposite House" }
-    ];
-    
-    return res.status(200).json(locationData);
-    
-  } catch (error) {
-    console.error('Error processing image:', error);
-    return res.status(500).json({ error: 'Failed to process image' });
-  }
-}
