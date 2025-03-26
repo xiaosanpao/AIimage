@@ -45,10 +45,16 @@ module.exports = async (req, res) => {
       }
     });
 
-    // Log the tags for debugging
-    console.log('Tags received:', imaggaResponse.data.result.tags);
+    // Process the Imagga API response
+    console.log('Received response from Imagga API');
+    
+    // Extract tags from the response
+    const tags = imaggaResponse.data.result.tags;
+    console.log('Tags identified:', tags.slice(0, 5).map(tag => tag.tag.en).join(', '));
     
     // Generate location-based information
+    // In a real application, you might use the tags to determine location
+    // or use another API with the coordinates from EXIF data if available
     const locationData = [
       { category: "LOCATION", info: "Sanlitun, Beijing" },
       { category: "NEARBY FOOD", info: "Fei Restaurant" },
@@ -56,10 +62,23 @@ module.exports = async (req, res) => {
       { category: "NEARBY HOTELS", info: "The Opposite House" }
     ];
     
+    // Return the location data
     return res.status(200).json(locationData);
     
   } catch (error) {
-    console.error('Error processing image:', error);
+    console.error('Error processing image:', error.message);
+    
+    // Provide more detailed error logging
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received from API');
+    }
+    
     return res.status(500).json({ error: 'Failed to process image' });
   }
 };
