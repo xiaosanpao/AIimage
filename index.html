@@ -247,7 +247,7 @@
 
     <script>
         // API endpoint - replace with your actual Vercel deployment URL
-        const API_ENDPOINT = 'https://aiimage-your-deployment.vercel.app/api/analyze-image';
+        const API_ENDPOINT = 'https://a-image-ddiph3ekp-tom-pao.vercel.app/api/analyze-image';
         
         // Handle file upload
         document.getElementById('photoUpload').addEventListener('change', function(event) {
@@ -315,9 +315,10 @@
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('error-message').style.display = 'block';
                     
-                    // For demo purposes, fall back to sample results if API fails
+                    // For fallback, show sample results if API fails
                     // In production, you might want to just show the error
-                    // showSampleResults();
+                    // Comment out the line below if you want to just show the error
+                    showSampleResults();
                 });
             };
             
