@@ -246,9 +246,8 @@
     </div>
 
     <script>
-        // API credentials
-        const API_KEY = 'acc_631eee5b4b7e128';
-        const API_SECRET = '63f492447d67c51dec28fa0adba9ef29';
+        // API endpoint - replace with your actual Vercel deployment URL
+        const API_ENDPOINT = 'https://aiimage-your-deployment.vercel.app/api/analyze-image';
         
         // Handle file upload
         document.getElementById('photoUpload').addEventListener('change', function(event) {
@@ -264,14 +263,66 @@
                 document.getElementById('error-message').style.display = 'none';
                 document.getElementById('results').style.display = 'none';
                 
-                // Since we're running locally, we'll just show sample results
-                // instead of actually making API calls
-                setTimeout(() => {
-                    document.getElementById('loading').style.display = 'none';
-                    showSampleResults();
-                }, 1500);
+                // Process the image
+                analyzeImage(file);
             }
         });
+        
+        // Function to analyze image
+        function analyzeImage(file) {
+            // Read the file as a data URL
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const imageData = e.target.result;
+                
+                // Try to send the image data to the Vercel API endpoint
+                fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ imageData })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to analyze image');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // Show results
+                    document.getElementById('results').style.display = 'block';
+                    
+                    // Display results
+                    const resultsList = document.getElementById('resultsList');
+                    resultsList.innerHTML = '';
+                    
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'result-item';
+                        div.innerHTML = `
+                            ${item.category} <span class="confidence">${item.info}</span>
+                        `;
+                        resultsList.appendChild(div);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error-message').style.display = 'block';
+                    
+                    // For demo purposes, fall back to sample results if API fails
+                    // In production, you might want to just show the error
+                    // showSampleResults();
+                });
+            };
+            
+            reader.readAsDataURL(file);
+        }
         
         // Handle sample photos
         document.querySelectorAll('.sample-photo').forEach(function(photo) {
@@ -286,23 +337,21 @@
                 document.getElementById('error-message').style.display = 'none';
                 document.getElementById('results').style.display = 'none';
                 
-                // Since we're running locally, we'll just show sample results
-                // after a brief delay to simulate processing
-                setTimeout(() => {
-                    document.getElementById('loading').style.display = 'none';
-                    
-                    // For demonstration purposes, randomly show error or results
-                    const sample = this.getAttribute('data-sample');
-                    if (sample === '2') { // Sample 2 will show an error for demonstration
+                // Fetch the image and process it
+                fetch(this.src)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        analyzeImage(blob);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching sample image:', error);
+                        document.getElementById('loading').style.display = 'none';
                         document.getElementById('error-message').style.display = 'block';
-                    } else {
-                        showSampleResults();
-                    }
-                }, 1500);
+                    });
             });
         });
         
-        // Function to show sample results for demonstration
+        // Function to show sample results (fallback if API is unavailable)
         function showSampleResults() {
             // Hide loading
             document.getElementById('loading').style.display = 'none';
