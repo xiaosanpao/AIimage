@@ -46,4 +46,20 @@ module.exports = async (req, res) => {
     });
 
     // Log the tags for debugging
-    console.
+    console.log('Tags received:', imaggaResponse.data.result.tags);
+    
+    // Generate location-based information
+    const locationData = [
+      { category: "LOCATION", info: "Sanlitun, Beijing" },
+      { category: "NEARBY FOOD", info: "Fei Restaurant" },
+      { category: "NEARBY ATTRACTIONS", info: "Taikoo Li Sanlitun" },
+      { category: "NEARBY HOTELS", info: "The Opposite House" }
+    ];
+    
+    return res.status(200).json(locationData);
+    
+  } catch (error) {
+    console.error('Error processing image:', error);
+    return res.status(500).json({ error: 'Failed to process image' });
+  }
+};
